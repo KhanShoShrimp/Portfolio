@@ -15,10 +15,10 @@
 
 ECS는 데이터 지향 프로그래밍으로 데이터를 병렬 처리할 수 있는 시스템입니다.
 
-개발시 주변 Entity를 검색할 때, ECS Physics의 Overlap 기능으로 사용하기보다 Position을 검색하는 것이 더 좋았습니다.
-
     실행방법
      - Boids 씬을 엽니다.
      - New Sub Scene씬을 엽니다.
      - Setting에서 Boids를 설정할 수 있습니다.(미리 설정해두었습니다.)
      - 플레이합니다.
+
+~~개발시 주변 Entity를 검색할 때, ECS Physics의 Overlap 기능으로 사용하기보다 Position을 검색하는 것이 더 좋았습니다.~~
