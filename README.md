@@ -22,9 +22,11 @@ ECS는 데이터 지향 프로그래밍으로 데이터를 병렬 처리할 수 
      - 플레이합니다.
 
 ps.개발시 주변 Entity를 검색할 때, Physics의 Overlap 기능으로 사용하기보다 직접 Position을 검색하는 것이 편이 더 빨라서 Physics 기능을 제거했습니다.
+
 ---
 **3. Relection - GameObj**
 
+Reflection은 클래스의 변수, 메소드를 사용할 수 있는 라이브러리입니다. 
 게임을 개발할 때 도움을 줄 수 있는 도구를 만들어보았습니다.
 
      - Reference 어트리뷰트
@@ -40,7 +42,7 @@ ps.개발시 주변 Entity를 검색할 때, Physics의 Overlap 기능으로 사
         *컴포넌트의 기본값을 현재(또는 자식 오브젝트)로 설정해줍니다.
         *배열, 리스트도 지원합니다.
         
-     - UpdateMethod
+     - UpdateMethod 메소드
         *제 생각에는 유니티 엔진에서 매프레임마다 Update메소드를 수집하여 실행된다고 생각합니다.
         Update보다 Event로 실행하면 프레임이 빨라집니다.
         이 과정을 자동화합니다.
