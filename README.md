@@ -21,7 +21,7 @@ ECS는 데이터 지향 프로그래밍으로 데이터를 병렬 처리할 수 
      - Setting에서 Boids를 설정할 수 있습니다.(미리 설정해두었습니다.)
      - 플레이합니다.
 
-ps.개발시 주변 Entity를 검색할 때, Physics의 Overlap 기능보다 Position을 검색하는 편이 더 빠릅니다.
+ps.개발시 주변 Entity를 검색할 때, Physics의 Overlap보다 Position을 검색하는 편이 더 빠릅니다.
 
 ---
 **3. Relection - GameObj**
