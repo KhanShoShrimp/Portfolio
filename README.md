@@ -13,7 +13,9 @@ ps.GC가 없도록 최적화했습니다.
 
 ---
 **2. ECS - Boids(군체 알고리즘)**
+
 ![GOMCAM 20220608_0958410981](https://user-images.githubusercontent.com/38842774/172508867-99a3eb50-b20d-4bb3-a9ed-980e1b52a605.gif)
+
 ECS는 데이터 지향 프로그래밍으로 데이터를 병렬 처리할 수 있는 시스템입니다.
 
     실행방법
