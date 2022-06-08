@@ -8,10 +8,16 @@ using UnityEditor;
 #endif
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class ReferenceAttribute : Attribute { }
+public class ReferenceAttribute : Attribute 
+{
+    public bool destroyOldObject = false;
+}
 
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
-public class SetDefaultAttribute : Attribute { }
+public class SetDefaultAttribute : Attribute 
+{
+    public bool getChild = false;
+}
 
 public class Ref<T> where T : Component { public static T Ins = null; }
 
@@ -65,7 +71,14 @@ public abstract class GameObj : MonoBehaviour
                         continue;
                     }
 
-                    field.SetValue(this, GetComponent(type));
+					if (attribute.getChild)
+					{
+                        field.SetValue(this, GetComponentInChildren(type));
+                    }
+                    else
+					{
+                        field.SetValue(this, GetComponent(type));
+                    }
                 }
 				else
 				{
@@ -79,8 +92,7 @@ public abstract class GameObj : MonoBehaviour
                             {
                                 continue;
                             }
-
-                            field.SetValue(this, GetArrayMethod.MakeGenericMethod(elementType).Invoke(this, new object[0] { }));
+                            field.SetValue(this, GetArrayMethod.MakeGenericMethod(elementType).Invoke(this, new object[1] { attribute.getChild }));
                         }
                     }
                     else if (type.IsGenericType)
@@ -93,8 +105,7 @@ public abstract class GameObj : MonoBehaviour
                             {
                                 continue;
                             }
-
-                            field.SetValue(this, GetListMethod.MakeGenericMethod(elementType).Invoke(this, new object[0] { }));
+                            field.SetValue(this, GetListMethod.MakeGenericMethod(elementType).Invoke(this, new object[1] { attribute.getChild }));
                         }
                     }
                 }
@@ -102,18 +113,32 @@ public abstract class GameObj : MonoBehaviour
         }
     }
 
-    private T[] GetArray<T>() where T : Component
+    private T[] GetArray<T>(bool getChild) where T : Component
     {
-        var list = new List<T>();
-        GetChild(transform, list);
-        return list.ToArray();
+		if (getChild)
+        {
+            var list = new List<T>();
+            GetChild(transform, list);
+            return list.ToArray();
+        }
+		else
+		{
+            return transform.GetComponents<T>();
+        }
     }
 
-    private List<T> GetList<T>() where T : Component
+    private List<T> GetList<T>(bool getChild) where T : Component
     {
-        var list = new List<T>();
-        GetChild(transform, list);
-        return list;
+		if (getChild)
+        {
+            var list = new List<T>();
+            GetChild(transform, list);
+            return list;
+        }
+		else
+		{
+            return new List<T>(transform.GetComponents<T>());
+        }
     }
 
     private void GetChild<T>(Transform transform, List<T> result) where T : Component
@@ -128,38 +153,43 @@ public abstract class GameObj : MonoBehaviour
 #endif
     #endregion
     #region Reference
-
     readonly static MethodInfo InsertMethod = typeof(GameObj).GetMethod("SetIntance", PRIVATE_BINDING);
 
     private void GetInstance()
     {
-        if (GetType().GetCustomAttribute<ReferenceAttribute>() != null)
+        var attribute = GetType().GetCustomAttribute<ReferenceAttribute>();
+
+        if (attribute != null)
         {
-            InsertMethod.MakeGenericMethod(GetType()).Invoke(this, new object[1] { this });
+            InsertMethod.MakeGenericMethod(GetType()).Invoke(this, new object[2] { this, attribute.destroyOldObject });
         }
     }
 
-    private void SetIntance<T>(T t) where T : Component
+    private void SetIntance<T>(T t, bool destroyOldObject) where T : Component
     {
+		if (destroyOldObject)
+		{
+            DestroyImmediate(Ref<T>.Ins);
+		}
         Ref<T>.Ins = t;
     }
     #endregion
     #region Update
     protected virtual void UpdateMethod() { }
 
-    static Type m_baseType = typeof(GameObj);
+    readonly static Type s_baseType = typeof(GameObj);
 
     private void AddUpdate()
     {
-        if (GetType().GetMethod("UpdateMethod", PRIVATE_BINDING).DeclaringType != m_baseType)
+        if (GetType().GetMethod("UpdateMethod", PRIVATE_BINDING).DeclaringType != s_baseType)
         {
-            Updater.Actions += UpdateMethod;
+            Updater.UpdateEvent += UpdateMethod;
         }
     }
 
     private void RemoveUpdate()
     {
-        Updater.Actions -= UpdateMethod;
+        Updater.UpdateEvent -= UpdateMethod;
     }
     #endregion
 }
