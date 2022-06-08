@@ -5,28 +5,10 @@ using UnityEngine;
 
 public class Updater : MonoBehaviour
 {
-    static Updater instance = null;
-    static event Action actions;
-    public static event Action UpdateEvent
-	{
-        add
-		{
-			if (instance == null)
-			{
-				GameObject obj = new GameObject("Updater");
-				DontDestroyOnLoad(obj);
-				instance = obj.AddComponent<Updater>();
-			}
-			actions += value;
-		}
-		remove
-		{
-			actions -= value;
-		}
-	}
+    public static event Action Actions;
 
     private void Update()
     {
-        actions?.Invoke();
+        Actions?.Invoke();
     }
 }
