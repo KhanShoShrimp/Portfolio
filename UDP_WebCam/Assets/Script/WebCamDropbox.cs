@@ -12,7 +12,6 @@ public class WebCamDropbox : TMPro.TMP_Dropdown
 		for (int i = 0; i < WebCamTexture.devices.Length; i++)
 		{
 			optionlist.Add(new OptionData(WebCamTexture.devices[i].name));
-			Debug.Log(WebCamTexture.devices[i].name);
 		}
 		options = optionlist;
 
