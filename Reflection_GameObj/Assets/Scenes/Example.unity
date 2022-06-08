@@ -372,14 +372,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e3c48de946af0d4aaa4e35a1be8fc4c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Components1: {fileID: 1561673251}
-  Components2: {fileID: 1561673251}
-  Components3:
-  - {fileID: 1561673251}
-  - {fileID: 2128353245}
-  - {fileID: 255420344}
-  Components4:
-  - {fileID: 1561673251}
+  Components1: {fileID: 0}
+  Components2: {fileID: 0}
+  Components3: []
+  Components4: []
 --- !u!4 &1561673246
 Transform:
   m_ObjectHideFlags: 0
