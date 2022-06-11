@@ -6,35 +6,34 @@ using UnityEngine;
 using UnityEngine.UI;
 using static TMPro.TMP_Dropdown;
 
-public class Example_1 : MonoBehaviour
+public class Example : MonoBehaviour
 {
 	public SendWebCam Send = null;
 	public RecvWebCam Recv = null;
 
-	[SerializeField] RawImage SendRawImage;
 	[SerializeField] RawImage RecvRawImage;
 
 	[SerializeField] Button SendButton;
 	[SerializeField] Button RecvButton;
 	[SerializeField] WebCamDropbox Dropdown;
 
+	private void Awake()
+	{
+		RecvRawImage.rectTransform.sizeDelta = new Vector2(0, 0);
+	}
+
 	public void StartSend()
 	{
-		if (Dropdown.value == 0)
-		{
-			Debug.Log("WebCam이 선택되지 않았습니다.");
-			return;
-		}
-		Dropdown.gameObject.SetActive(false);
 		SendButton.gameObject.SetActive(false);
+		Dropdown.gameObject.SetActive(false);
 
-		Send = new SendWebCam(SendRawImage);
+		Send = new SendWebCam(Dropdown.WebCamTexture);
 	}
 
 	public void StartRecv()
 	{
 		RecvButton.gameObject.SetActive(false);
 
-		Recv = new RecvWebCam(RecvRawImage, "127.0.0.1");
+		Recv = new RecvWebCam(new byte[] { 127, 0, 0, 1 }, RecvRawImage);
 	}
 }

@@ -24,10 +24,10 @@ public enum MessageSort : byte
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct Packet
 {
-	public MessageSort Sort;
-	public byte Index;
-	[MarshalAs(UnmanagedType.ByValArray, SizeConst = 65505)]
-	public byte[] Bytes;
+    public MessageSort Sort;
+    public byte Index;
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 65505)]
+    public byte[] Bytes;
 }
 
 public class BaseUDP : IDisposable
@@ -37,7 +37,7 @@ public class BaseUDP : IDisposable
     protected const int PACKETSIZE = 65507;
     protected const int DATASIZE = 65505;
 
-    public BaseUDP() 
+    public BaseUDP()
     {
         CreateSocket();
     }
@@ -88,56 +88,56 @@ public class BaseUDP : IDisposable
     #endregion
     #region Send/Recv
     protected void Send(byte[] bytes)
-	{
-		try
-		{
+    {
+        try
+        {
             m_Socket.SendTo(bytes, PACKETSIZE, SocketFlags.None, m_RemoteEndPoint);
         }
         catch (Exception)
-		{
+        {
         }
     }
 
     protected void Recv(byte[] bytes)
     {
-		try
-		{
+        try
+        {
             m_Socket.ReceiveFrom(bytes, PACKETSIZE, SocketFlags.None, ref m_RemoteEndPoint);
         }
         catch (Exception)
-		{
+        {
         }
     }
-	#endregion
+    #endregion
 }
 
 public abstract class CustomUDP : BaseUDP
 {
     public CustomUDP() : base()
-	{
-		StartSend();
+    {
+        StartSend();
         StartReceive();
     }
-	#region Send
-	private Queue<byte[]> m_SendBytes = new Queue<byte[]>();
+    #region Send
+    private Queue<byte[]> m_SendBytes = new Queue<byte[]>();
 
-	private async void StartSend()
+    private async void StartSend()
     {
         await UniTask.WaitUntil(() => m_RemoteEndPoint != null);
 
         var cancelToken = GameUtils.GetCancelToken();
 
-		GameUtils.RunOnThreadPool(() =>
-		{
-			while (!cancelToken.IsCancellationRequested)
-			{
-				lock (m_SendBytes)
-				{
-					if (m_SendBytes.Count > 0)
-					{
-						Send(m_SendBytes.Dequeue());
-					}
-				}
+        GameUtils.RunOnThreadPool(() =>
+        {
+            while (!cancelToken.IsCancellationRequested)
+            {
+                lock (m_SendBytes)
+                {
+                    if (m_SendBytes.Count > 0)
+                    {
+                        Send(m_SendBytes.Dequeue());
+                    }
+                }
             }
         }, cancelToken).Forget();
     }
@@ -149,7 +149,7 @@ public abstract class CustomUDP : BaseUDP
         const int BYTES = 2;
 
         lock (m_SendBytes)
-		{
+        {
             foreach (var send in m_SendBytes)
             {
                 if (send[SORT] == bytes[SORT] && send[INDEX] == bytes[INDEX])
@@ -159,16 +159,16 @@ public abstract class CustomUDP : BaseUDP
                 }
             }
             m_SendBytes.Enqueue(bytes);
-		}
-	}
-	#endregion
-	#region Recv
-	private byte[] m_Recv;
+        }
+    }
+    #endregion
+    #region Recv
+    private byte[] m_Recv;
     protected IntPtr m_RecvPointer;
 
     private async void StartReceive()
     {
-        await UniTask.WaitUntil(()=> m_RemoteEndPoint != null);
+        await UniTask.WaitUntil(() => m_RemoteEndPoint != null);
 
         var cancelToken = GameUtils.GetCancelToken();
         m_Recv = new byte[PACKETSIZE];
@@ -191,10 +191,9 @@ public abstract class CustomUDP : BaseUDP
 
 public class SendWebCam : CustomUDP
 {
-    public SendWebCam(RawImage rawImage, int deviceNum = 0)
+    public SendWebCam(WebCamTexture webCamTexture)
     {
-        InitWebCam(rawImage, deviceNum);
-
+        InitWebCam(webCamTexture);
         InitEndPoint(SERVERPORT, CLIENTPORT);
     }
     #region WebCam
@@ -204,16 +203,10 @@ public class SendWebCam : CustomUDP
     public int Length { get; private set; }
 
     private WebCamTexture m_WebCamTexture;
-    private RawImage m_RawImage;
 
-    private void InitWebCam(RawImage rawImage, int deviceNum)
-	{
-        m_WebCamTexture = new WebCamTexture(WebCamTexture.devices[deviceNum].name);
-
-        m_RawImage = rawImage;
-        m_RawImage.texture = m_WebCamTexture;
-
-        WebCamPlay();
+    private void InitWebCam(WebCamTexture webCamTexture)
+    {
+        m_WebCamTexture = webCamTexture;
 
         Width = m_WebCamTexture.width;
         Height = m_WebCamTexture.height;
@@ -221,24 +214,6 @@ public class SendWebCam : CustomUDP
         Count = Length / DATASIZE + 1;
 
         InitPixel();
-    }
-
-    public void WebCamPlay()
-    {
-        if (m_WebCamTexture == null || m_WebCamTexture.isPlaying)
-        {
-            return;
-        }
-        m_WebCamTexture.Play();
-    }
-
-    public void WebCamStop()
-    {
-        if (m_WebCamTexture == null || !m_WebCamTexture.isPlaying)
-        {
-            return;
-        }
-        m_WebCamTexture.Stop();
     }
     #region Pixel
     private Color32[] m_Pixel;
@@ -253,7 +228,7 @@ public class SendWebCam : CustomUDP
         m_RGBPointer = GameUtils.GetIntPtr(m_RGB);
         m_RGBNative = new NativeArray<byte>(m_RGB, Allocator.Persistent);
         Updater.DestroyEvent += () => { m_RGBNative.Dispose(); };
-        Updater.UpdateEvent += () => 
+        Updater.UpdateEvent += () =>
         {
             if (m_WebCamTexture.isPlaying)
             {
@@ -304,8 +279,10 @@ public class SendWebCam : CustomUDP
     #endregion
     #region UDP
     public bool IsConneted { get; private set; }
-	#region Recv
-	protected override void ReceiveBytes(byte[] bytes)
+    public byte[] RemoteIP { get; private set; }
+
+    #region Recv
+    protected override void ReceiveBytes(byte[] bytes)
     {
         switch ((MessageSort)bytes[0])
         {
@@ -314,7 +291,8 @@ public class SendWebCam : CustomUDP
                 break;
             case MessageSort.NewConnect:
                 IsConneted = true;
-                
+                RemoteIP = new byte[4] { bytes[2], bytes[3], bytes[4], bytes[5] };
+
                 byte[] data = new byte[PACKETSIZE];
                 data[0] = (byte)MessageSort.AcceptConnect;
                 data[1] = 0;
@@ -329,23 +307,23 @@ public class SendWebCam : CustomUDP
                 break;
         }
     }
-	#endregion
-	#region Send
-	private byte[] m_Requests;
+    #endregion
+    #region Send
+    private byte[] m_Requests;
     private IntPtr m_RequestsPointer;
 
     private byte[][] m_SendByte;
     private IntPtr[] m_SendBytePointer;
 
     private void InitSendImage()
-	{
+    {
         m_Requests = new byte[DATASIZE];
         m_RequestsPointer = GameUtils.GetIntPtr(m_Requests);
 
         m_SendByte = new byte[Count][];
         m_SendBytePointer = new IntPtr[Count];
-		for (byte i = 0; i < Count; i++)
-		{
+        for (byte i = 0; i < Count; i++)
+        {
             m_SendByte[i] = new byte[PACKETSIZE];
             m_SendByte[i][0] = 4;
             m_SendByte[i][1] = i;
@@ -372,11 +350,11 @@ public class RecvWebCam : CustomUDP
 {
     public bool IsConneted = false;
 
-    public RecvWebCam(RawImage rawImage, string serverIP)
+    public RecvWebCam(byte[] serverIP, RawImage rawImage)
     {
         m_RawImage = rawImage;
 
-        InitEndPoint(CLIENTPORT, SERVERPORT, IPAddress.Parse(serverIP));
+        InitEndPoint(CLIENTPORT, SERVERPORT, new IPAddress(serverIP));
 
         TryConnect();
     }
@@ -405,6 +383,8 @@ public class RecvWebCam : CustomUDP
     {
         m_Texture = new Texture2D(Width, Height);
         m_RawImage.texture = m_Texture;
+        m_RawImage.rectTransform.sizeDelta = new Vector2(1000, 1000f * Height / Width);
+
         Updater.UpdateEvent -= MakeTexture;
     }
     #region Pixel
@@ -415,7 +395,7 @@ public class RecvWebCam : CustomUDP
     IntPtr m_RGBPointer;
 
     private void InitPixel()
-	{
+    {
         m_Pixel = new Color32[Width * Height];
 
         m_RGB = new byte[Length];
@@ -447,13 +427,13 @@ public class RecvWebCam : CustomUDP
             RGBA[index] = new Color32(RGB[index * 3], RGB[index * 3 + 1], RGB[index * 3 + 2], 255);
         }
     }
-	#endregion
+    #endregion
     #endregion
     #region UDP
     private byte[] m_SendBytes;
-	private IntPtr m_SendBytesPointer;
+    private IntPtr m_SendBytesPointer;
 
-	protected override void ReceiveBytes(byte[] bytes)
+    protected override void ReceiveBytes(byte[] bytes)
     {
         switch ((MessageSort)bytes[0])
         {
@@ -478,8 +458,8 @@ public class RecvWebCam : CustomUDP
                 GameUtils.memcpy(m_RGBPointer + DATASIZE * index, m_RecvPointer + 2, Math.Min(DATASIZE, Length - DATASIZE * index));
                 lock (m_SendBytes)
                 {
-					m_SendBytes[index + 2] = 1;
-				}
+                    m_SendBytes[index + 2] = 1;
+                }
                 break;
         }
     }
@@ -488,6 +468,7 @@ public class RecvWebCam : CustomUDP
     {
         byte[] bytes = new byte[PACKETSIZE];
         bytes[0] = (byte)MessageSort.NewConnect;
+        GameUtils.CopyBytes(bytes, 2, GameUtils.GetIp().GetAddressBytes(), 0, 4);
 
         while (!IsConneted)
         {
@@ -508,21 +489,21 @@ public class RecvWebCam : CustomUDP
         {
             lock (m_SendBytes)
             {
-				int count = 0;
-				for (int i = 0; i < Count; i++)
-				{
-					if (m_SendBytes[i] == 0)
-					{
-						count++;
-					}
-				}
+                int count = 0;
+                for (int i = 0; i < Count; i++)
+                {
+                    if (m_SendBytes[i] == 0)
+                    {
+                        count++;
+                    }
+                }
 
-				if (count <= CLEARCOUNT)
-				{
+                if (count <= CLEARCOUNT)
+                {
                     GameUtils.memset(m_SendBytesPointer + 2, 0, Count);
-				}
+                }
 
-				m_SendBytes[0] = 3;
+                m_SendBytes[0] = 3;
                 m_SendBytes[1] = 0;
                 EnqueueSendBytes(m_SendBytes);
             }
