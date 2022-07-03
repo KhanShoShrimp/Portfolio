@@ -27,7 +27,17 @@ ECS는 데이터 지향 프로그래밍으로 데이터를 병렬 처리할 수 
 ps.개발시 주변 Entity를 검색할 때, Physics의 Overlap보다 Position을 검색하는 편이 더 빨랐습니다.
 
 ---
-**3. Relection - GameObj**
+**3.Jobs - 섬 만들기**
+
+Job System은 안전한 멀티스레드를 제공하여 데이터를 빠르게 처리할 수 있는 시스템입니다.
+노이즈를 생성(PerlinNoise, Gradient)하거나 섬 메쉬를 생성(Vertice, UV, Triangle)할 때, 데이터를 JobSystem으로 빠르게 처리하고 있습니다.
+
+    실행방법
+     - Sample 씬을 열고 플레이합니다.
+     - Make 버튼을 누르면 새로운 섬을 만듭니다.
+
+---
+**4. Relection - GameObj**
 
 Reflection은 클래스의 변수, 메소드의 정보를 가져오거나 사용하는 라이브러리입니다.
 
