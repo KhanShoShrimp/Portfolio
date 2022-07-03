@@ -5,7 +5,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
-public enum NodeState : byte { ¹Ù´Ù, ¶¥, »ê, ´« }
+public enum NodeState : byte { ÇØº¯, µéÆÇ, ½£, ¶¥, ´« }
 
 public struct MapData : IDisposable
 {
@@ -68,23 +68,28 @@ public struct MapData : IDisposable
 
 			if (value < 5)
 			{
-				OutputNodes[index] = NodeState.¹Ù´Ù;
-				OutputColors[index] = new Color32(255, 200, 175, 255);
+				OutputNodes[index] = NodeState.ÇØº¯;
+				OutputColors[index] = new Color32(236, 236, 195, 255);
 			}
-			else if (value < 10)
+			else if (value < 7.5f)
 			{
-				OutputNodes[index] = NodeState.¶¥;
-				OutputColors[index] = new Color32(150, 60, 0, 255);
+				OutputNodes[index] = NodeState.µéÆÇ;
+				OutputColors[index] = new Color32(122, 212, 51, 255);
+			}
+			else if (value < 22.5f)
+			{
+				OutputNodes[index] = NodeState.½£;
+				OutputColors[index] = new Color32(56, 166, 65, 255);
 			}
 			else if (value < 30)
 			{
-				OutputNodes[index] = NodeState.»ê;
-				OutputColors[index] = new Color32(0, 150, 0, 255);
+				OutputNodes[index] = NodeState.¶¥;
+				OutputColors[index] = new Color32(132, 116, 102, 255);
 			}
 			else
 			{
 				OutputNodes[index] = NodeState.´«;
-				OutputColors[index] = new Color32(255, 255, 255, 255);
+				OutputColors[index] = new Color32(111, 111, 111, 111);
 			}
 		}
 	}
