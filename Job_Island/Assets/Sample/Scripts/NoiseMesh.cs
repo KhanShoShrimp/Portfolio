@@ -36,7 +36,7 @@ public class NoiseMesh : MonoBehaviour
 	{
 		using (MapData mapData = new MapData(Size_Width, Size_Height, Total_Height, Mountain_Height))
 		{
-			m_Texture.Reinitialize(Size_Width, Size_Height);
+			m_Texture.Resize(Size_Width, Size_Height);
 			m_Texture.SetPixelData(mapData.Colors, 0);
 			m_Texture.Apply();
 

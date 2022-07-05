@@ -4,11 +4,5 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes:
-  - enabled: 1
-    path: Assets/0_NoiseTexture/NoiseTexture.unity
-    guid: e4e0ae796c38a354fa7a044362f4f172
-  - enabled: 1
-    path: Assets/Sample/NoiseMesh.unity
-    guid: 7ec38035903b49947b45dec1b49f8d17
+  m_Scenes: []
   m_configObjects: {}
