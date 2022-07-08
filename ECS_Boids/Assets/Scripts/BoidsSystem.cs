@@ -76,7 +76,7 @@ public partial class BoidsSystem : SystemBase
 			int nearCount = 0;
 			while (posEnumerator.MoveNext() & rotEnumerator.MoveNext())
 			{
-				float distance = math.distance(posEnumerator.Current.Value, position.Value);
+				float distance = math.distancesq(posEnumerator.Current.Value, position.Value);
 				if (distance > 0 && distance < radius)
 				{
 					++nearCount;
