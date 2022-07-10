@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Sample/Sample.unity
+    path: Assets/PerlinIsland/PerlinIsland.unity
     guid: 7ec38035903b49947b45dec1b49f8d17
   m_configObjects: {}

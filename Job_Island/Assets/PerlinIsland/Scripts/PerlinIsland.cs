@@ -4,7 +4,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class NoiseMesh : MonoBehaviour
+public class PerlinIsland : MonoBehaviour
 {
 	MeshFilter m_MeshFilter;
 	MeshRenderer m_MeshRenderer;
@@ -34,7 +34,7 @@ public class NoiseMesh : MonoBehaviour
 
 	public void CreateMap()
 	{
-		using (MapData mapData = new MapData(Size_Width, Size_Height, Total_Height, Mountain_Height))
+		using (PerlinMapData mapData = new PerlinMapData(Size_Width, Size_Height, Total_Height, Mountain_Height))
 		{
 			m_Texture.Resize(Size_Width, Size_Height);
 			m_Texture.SetPixelData(mapData.Colors, 0);
@@ -84,7 +84,7 @@ public class NoiseMesh : MonoBehaviour
 			int x = index % Width;
 			int y = index / Width;
 			Vertices[index] = math.float3(x, Noises[index], y);
-			Uvs[index] = math.float2(x / Resolutions.x, y / Resolutions.y);
+			Uvs[index] = math.float2(x, y) / Resolutions;
 		}
 	}
 

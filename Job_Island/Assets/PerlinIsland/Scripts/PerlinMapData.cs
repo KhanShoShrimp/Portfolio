@@ -7,13 +7,13 @@ using UnityEngine;
 
 public enum NodeState : byte { ÇØº¯, µéÆÇ, ½£, ¶¥, ´« }
 
-public struct MapData : IDisposable
+public struct PerlinMapData : IDisposable
 {
 	public NativeArray<float> Values;
 	public NativeArray<NodeState> Nodes;
 	public NativeArray<Color32> Colors;
 
-	public MapData(int width, int height, float mult = 10, float pow = 2)
+	public PerlinMapData(int width, int height, float mult = 10, float pow = 2)
 	{
 		var length = width * height;
 		Values = new NativeArray<float>(length, Allocator.Persistent);
