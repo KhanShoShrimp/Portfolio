@@ -11,21 +11,21 @@ public struct GaussianDistribution : IJobParallelFor
 {
 	[ReadOnly] public int Width;
 	[ReadOnly] public int Height;
-	[WriteOnly] public NativeArray<float2> Points;
+	[WriteOnly] public NativeArray<float2> Corners;
 
 	static Unity.Mathematics.Random s_Random;
 
-	public GaussianDistribution(int width, int height, NativeArray<float2> points)
+	public GaussianDistribution(int width, int height, NativeArray<float2> corners)
 	{
 		Width = width;
 		Height = height;
-		Points = points;
+		Corners = corners;
 		s_Random = new Unity.Mathematics.Random((uint)DateTime.Now.Ticks);
 	}
 
 	public void Execute(int index)
 	{
-		Points[index] = math.float2(Gaussian(0, Width), Gaussian(0, Height));
+		Corners[index] = math.float2(Gaussian(0, Width), Gaussian(0, Height));
 	}
 
 	private float Gaussian(float minValue = 0.0f, float maxValue = 1.0f)

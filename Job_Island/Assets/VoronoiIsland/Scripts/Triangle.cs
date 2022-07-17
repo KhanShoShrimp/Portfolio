@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -54,7 +55,7 @@ public struct Triangle
 		return math.distancesq(point, Center) < Radius;
 	}
 
-	public bool InsidePoints(IEnumerable<float2> points)
+	public bool InsidePoints(NativeArray<float2> points)
 	{
 		foreach (var point in points)
 		{
@@ -77,6 +78,31 @@ public struct Triangle
 			}
 		}
 		return false;
+	}
+
+	public bool IsNearby(Triangle triangle)
+	{
+		int count = 0;
+		if (Contain(triangle.Point1))
+		{
+			++count;
+		}
+		if (Contain(triangle.Point2))
+		{
+			++count;
+		}
+		if (Contain(triangle.Point3))
+		{
+			++count;
+		}
+		return count > 1;
+	}
+
+	public bool Contain(float2 point)
+	{
+		return (point.x == Point1.x & point.y == Point1.y)
+			|| (point.x == Point2.x & point.y == Point2.y)
+			|| (point.x == Point3.x & point.y == Point3.y);
 	}
 
 	public override string ToString()
