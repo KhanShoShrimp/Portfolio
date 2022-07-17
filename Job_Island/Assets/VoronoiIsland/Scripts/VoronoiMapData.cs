@@ -9,92 +9,71 @@ using UnityEngine;
 
 public struct VoronoiMapData : IDisposable
 {
+	public NativeArray<float2> Vertices;
 	public NativeArray<Triangle> Triangles;
-	public NativeArray<float2> Corners;
-	public NativeArray<float2> Centers;
-	public NativeArray<float4> Edges;
+
+	private NativeList<Triangle> TriangleList;
 	private readonly int Length;
 
 	public VoronoiMapData(int width, int height, int count)
 	{
-		Corners = new NativeArray<float2>(count, Allocator.Persistent);
-		Centers = new NativeArray<float2>();
+		Vertices = new NativeArray<float2>(count, Allocator.Persistent);
 		Triangles = new NativeArray<Triangle>();
-		Edges = new NativeArray<float4>();
+
+		TriangleList = new NativeList<Triangle>((count - 3) * 2, Allocator.Persistent);
 		Length = count;
 
 		PickDot(width, height);
-		DeluanayTriangulation();
-		Voronoi();
+		DrawTriangle();
 	}
 
 	public void Dispose()
 	{
-		if (Corners.IsCreated)
+		if (Vertices.IsCreated)
 		{
-			Corners.Dispose();
+			Vertices.Dispose();
 		}
 		if (Triangles.IsCreated)
 		{
 			Triangles.Dispose();
 		}
-		if (Edges.IsCreated)
+		if (TriangleList.IsCreated)
 		{
-			Edges.Dispose();
+			TriangleList.Dispose();
 		}
 	}
 
 	public void PickDot(int width, int height)
 	{
-		Corners[Length - 4] = math.float2(0, 0);
-		Corners[Length - 3] = math.float2(width, 0);
-		Corners[Length - 2] = math.float2(0, height);
-		Corners[Length - 1] = math.float2(width, height);
+		Vertices[Length - 4] = math.float2(0, 0);
+		Vertices[Length - 3] = math.float2(width, 0);
+		Vertices[Length - 2] = math.float2(0, height);
+		Vertices[Length - 1] = math.float2(width, height);
 
-		new GaussianDistribution(width, height, Corners).Schedule(Length - 4, 8).Complete();
+		new GaussianDistribution(width, height, Vertices).Schedule(Length - 4, 8).Complete();
 	}
 
 	//들로네 삼각분법 : https://www.secmem.org/blog/2019/01/11/Deluanay_Triangulation/
-	public void DeluanayTriangulation()
+	public void DrawTriangle()
 	{
-		using NativeList<float2> corners = new NativeList<float2>(Length, Allocator.TempJob)
+		using NativeList<float2> checks = new NativeList<float2>(Length, Allocator.TempJob)
 		{
-			Corners[Length - 4],
-			Corners[Length - 3],
-			Corners[Length - 2],
-			Corners[Length - 1]
+			Vertices[Length - 4],
+			Vertices[Length - 3],
+			Vertices[Length - 2],
+			Vertices[Length - 1]
 		};
 
-		using NativeList<Triangle> triangleList = new NativeList<Triangle>((Length - 3) * 2, Allocator.TempJob)
-		{
-			new Triangle(Corners[Length - 4], Corners[Length - 2], Corners[Length - 1]),
-			new Triangle(Corners[Length - 4], Corners[Length - 3], Corners[Length - 1])
-		};
+		TriangleList.Add(new Triangle(Vertices[Length - 4], Vertices[Length - 2], Vertices[Length - 1]));
+		TriangleList.Add(new Triangle(Vertices[Length - 4], Vertices[Length - 3], Vertices[Length - 1]));
 
-		using NativeList<float4> edges = new NativeList<float4>(Length * 10, Allocator.TempJob);
-
-		new D_CalcTriangle()
+		new DeluanayTriangulation()
 		{
-			Corners = Corners,
-			CheckList = corners,
-			Triangles = triangleList
+			Vertices = Vertices,
+			Checks = checks,
+			Triangles = TriangleList
 		}.Run(Length);
 
-		new D_ConnectCenter()
-		{
-			Triangles = triangleList,
-			Edges = edges
-		}.Run(triangleList.Length);
-
-		Triangles = new NativeArray<Triangle>(triangleList.Length, Allocator.Persistent);
-		NativeArray<Triangle>.Copy(triangleList, Triangles);
-
-		Edges = new NativeArray<float4>(edges.Length, Allocator.Persistent);
-		NativeArray<float4>.Copy(edges, Edges);
-	}
-
-	public void Voronoi()
-	{
-
+		Triangles = TriangleList.AsArray();
 	}
 }

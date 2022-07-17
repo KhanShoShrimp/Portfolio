@@ -26,7 +26,7 @@ public struct PerlinMapData : IDisposable
 		using Gradient gradient = new Gradient(width, height);
 		using Power power = new Power(width, height);
 
-		new UpdateDataJob()
+		new PerlinColor()
 		{
 			Noise = noise.Values,
 			Gradient = gradient.Values,
@@ -49,7 +49,7 @@ public struct PerlinMapData : IDisposable
 	}
 
 	[BurstCompile]
-	private struct UpdateDataJob : IJobParallelFor
+	private struct PerlinColor : IJobParallelFor
 	{
 		[ReadOnly] public NativeArray<float> Noise;
 		[ReadOnly] public NativeArray<float> Gradient;

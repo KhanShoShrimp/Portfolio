@@ -12,6 +12,18 @@ public struct Triangle
 	public float2 Point3;
 	public float2 Center;
 	public float Radius;
+	public float Area
+	{
+		get
+		{
+			return (Point1.x * Point2.y
+				+ Point2.x * Point3.y
+				+ Point3.x * Point1.y
+				- Point2.x * Point1.y
+				- Point3.x * Point2.y
+				- Point1.x * Point3.y) * 0.5f;
+		}
+	}
 
 	public Triangle(float2 p1, float2 p2, float2 p3)
 	{
