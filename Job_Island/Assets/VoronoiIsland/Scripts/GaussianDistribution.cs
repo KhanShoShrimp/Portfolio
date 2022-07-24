@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -20,7 +21,13 @@ public struct GaussianDistribution : IJobParallelFor
 		Width = width;
 		Height = height;
 		Corners = corners;
+
 		s_Random = new Unity.Mathematics.Random((uint)DateTime.Now.Ticks);
+
+		Corners[corners.Length - 4] = math.float2(0, 0);
+		Corners[corners.Length - 3] = math.float2(width, 0);
+		Corners[corners.Length - 2] = math.float2(0, height);
+		Corners[corners.Length - 1] = math.float2(width, height);
 	}
 
 	public void Execute(int index)
@@ -31,7 +38,6 @@ public struct GaussianDistribution : IJobParallelFor
 	private float Gaussian(float minValue = 0.0f, float maxValue = 1.0f)
 	{
 		float u, v, S;
-
 		do
 		{
 			u = 2.0f * s_Random.NextFloat() - 1.0f;

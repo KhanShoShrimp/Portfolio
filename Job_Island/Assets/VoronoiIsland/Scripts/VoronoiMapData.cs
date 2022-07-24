@@ -12,19 +12,28 @@ public struct VoronoiMapData : IDisposable
 	public NativeArray<float2> Vertices;
 	public NativeArray<Triangle> Triangles;
 
-	private NativeList<Triangle> TriangleList;
+	public NativeArray<float2> Centroids;
+	public NativeArray<float4> Edges;
+
+	private readonly int Width;
+	private readonly int Height;
 	private readonly int Length;
 
 	public VoronoiMapData(int width, int height, int count)
 	{
-		Vertices = new NativeArray<float2>(count, Allocator.Persistent);
-		Triangles = new NativeArray<Triangle>();
-
-		TriangleList = new NativeList<Triangle>((count - 3) * 2, Allocator.Persistent);
+		Width = width;
+		Height = height;
 		Length = count;
 
-		PickDot(width, height);
-		DrawTriangle();
+		Vertices = new NativeArray<float2>(Length, Allocator.Persistent);
+		Triangles = new NativeArray<Triangle>();
+
+		Centroids = new NativeArray<float2>();
+		Edges = new NativeArray<float4>();
+
+		PickDot();
+		CalcTriangle();
+		CalcCentroid();
 	}
 
 	public void Dispose()
@@ -37,43 +46,98 @@ public struct VoronoiMapData : IDisposable
 		{
 			Triangles.Dispose();
 		}
-		if (TriangleList.IsCreated)
+		if (Centroids.IsCreated)
 		{
-			TriangleList.Dispose();
+			Centroids.Dispose();
+		}
+		if (Edges.IsCreated)
+		{
+			Edges.Dispose();
 		}
 	}
 
-	public void PickDot(int width, int height)
+	private void PickDot()
 	{
-		Vertices[Length - 4] = math.float2(0, 0);
-		Vertices[Length - 3] = math.float2(width, 0);
-		Vertices[Length - 2] = math.float2(0, height);
-		Vertices[Length - 1] = math.float2(width, height);
-
-		new GaussianDistribution(width, height, Vertices).Schedule(Length - 4, 8).Complete();
+		new GaussianDistribution(Width, Height, Vertices).Schedule(Length - 4, 8).Complete();
 	}
 
-	//들로네 삼각분법 : https://www.secmem.org/blog/2019/01/11/Deluanay_Triangulation/
-	public void DrawTriangle()
+	private void CalcTriangle()
 	{
-		using NativeList<float2> checks = new NativeList<float2>(Length, Allocator.TempJob)
+		using DeluanayTriangulation deluanay = new DeluanayTriangulation(Vertices);
+		deluanay.Run(Length);
+		Triangles = new NativeArray<Triangle>(deluanay.Triangles, Allocator.Persistent);
+
+		using Voronoi voronoi = new Voronoi(Triangles);
+		voronoi.Run(Triangles.Length);
+		Edges = new NativeArray<float4>(voronoi.Edges, Allocator.Persistent);
+	}
+
+	private void CalcCentroid()
+	{
+		NativeList<float2>[] nodes = new NativeList<float2>[Length];
+		for (int i = 0; i < Length; i++)
 		{
-			Vertices[Length - 4],
-			Vertices[Length - 3],
-			Vertices[Length - 2],
-			Vertices[Length - 1]
-		};
+			nodes[i] = new NativeList<float2>(Allocator.TempJob);
+		}
 
-		TriangleList.Add(new Triangle(Vertices[Length - 4], Vertices[Length - 2], Vertices[Length - 1]));
-		TriangleList.Add(new Triangle(Vertices[Length - 4], Vertices[Length - 3], Vertices[Length - 1]));
-
-		new DeluanayTriangulation()
+		for (int i = 0; i < Triangles.Length; i++)
 		{
-			Vertices = Vertices,
-			Checks = checks,
-			Triangles = TriangleList
-		}.Run(Length);
+			var center = Triangles[i].Center;
 
-		Triangles = TriangleList.AsArray();
+			int index1 = Vertices.IndexOf(Triangles[i].Point1);
+			int index2 = Vertices.IndexOf(Triangles[i].Point2);
+			int index3 = Vertices.IndexOf(Triangles[i].Point3);
+
+			nodes[index1].Add(center);
+			nodes[index2].Add(center);
+			nodes[index3].Add(center);
+		}
+
+		Centroids = new NativeArray<float2>(Length, Allocator.Persistent);
+		//for (int i = 0; i < Length; i++)
+		//{
+		//	var nodesLength = nodes[i].Length;
+		//	for (int j = 0; j < nodesLength; j++)
+		//	{
+		//		Centroids[i] += nodes[i][j];
+		//	}
+		//	Centroids[i] /= nodesLength;
+		//}
+		
+		for (int i = 0; i < Length; i++)
+		{
+			var nodesLength = nodes[i].Length;
+
+			float Area = 0;
+			Centroids[i] = float2.zero;
+
+			for (int j = 0; j < nodesLength; j++)
+			{
+				float2 crnt = nodes[i][j];
+				float2 next = nodes[i][(j + 1) % nodesLength];
+
+				float k = crnt.x * next.y - next.x * crnt.y;
+
+				Area += k;
+				Centroids[i] += math.float2((crnt.x + next.x) * k, (crnt.y + next.y) * k);
+			}
+			Area *= 0.5f;
+			Centroids[i] /= 6 * Area;
+		}
+
+		for (int i = 0; i < Length; i++)
+		{
+			nodes[i].Dispose();
+		}
+	}
+
+	private void Lloyid()
+	{
+
+	}
+
+	private void Fortune()
+	{
+
 	}
 }
