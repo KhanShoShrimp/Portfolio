@@ -13,8 +13,8 @@ public struct BoidsSettingComponent : IComponentData
 	public float Alignment;
 	public float Separation;
 
-	public float Radius;
-
-	public float MoveSpeed;
+	public float Range;
+	public float LimitRotate;
 	public float RotateSpeed;
+	public float MoveSpeed;
 }

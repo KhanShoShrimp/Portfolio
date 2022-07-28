@@ -4,11 +4,12 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 [UpdateAfter(typeof(SpawnSystem))]
 public partial class BoidsSystem : SystemBase
 {
-	BoidsSettingComponent m_BoidsSetting;
+	//BoidsSettingComponent m_BoidsSetting;
 	EntityQuery m_ObjectQuery;
 
 	bool m_IsInit = false;
@@ -17,7 +18,7 @@ public partial class BoidsSystem : SystemBase
 
 	protected override void OnStartRunning()
 	{
-		m_BoidsSetting = GetSingleton<BoidsSettingComponent>();
+		//m_BoidsSetting = GetSingleton<BoidsSettingComponent>();
 		m_ObjectQuery = GetEntityQuery(typeof(ObjectTag), typeof(Translation), typeof(Rotation));
 	}
 
@@ -35,14 +36,17 @@ public partial class BoidsSystem : SystemBase
 
 	protected override void OnUpdate()
 	{
-		float alignmentValue = m_BoidsSetting.Alignment;
-		float cohesionValue = m_BoidsSetting.Coheshion;
-		float separationValue = m_BoidsSetting.Separation;
-		
-		float radius = m_BoidsSetting.Radius;
+		RequireSingletonForUpdate<BoidsSettingComponent>();
+		BoidsSettingComponent setting = GetSingleton<BoidsSettingComponent>();
 
-		float moveSpeed = m_BoidsSetting.MoveSpeed;
-		float rotateSpeed = m_BoidsSetting.RotateSpeed;
+		float alignmentValue = setting.Alignment;
+		float cohesionValue = setting.Coheshion;
+		float separationValue = setting.Separation;
+
+		float radius = setting.Range;
+		float limitRotate = setting.LimitRotate;
+		float moveSpeed = setting.MoveSpeed;
+		float rotateSpeed = setting.RotateSpeed;
 
 		int count = m_ObjectQuery.CalculateEntityCount();
 		if (!m_IsInit)
@@ -64,64 +68,61 @@ public partial class BoidsSystem : SystemBase
 			.WithReadOnly(positions)
 			.WithReadOnly(rotations)
 			.ForEach((ref Translation position, ref Rotation rotation, in ObjectTag objectTag) =>
-		{
-			float3 alignment = new float3(0, 0, 0);
-			float3 coheshion = new float3(0, 0, 0);
-			float3 separation = new float3(0, 0, 0);
-			float3 force = float3.zero;
-
-			var posEnumerator = positions.GetEnumerator();
-			var rotEnumerator = rotations.GetEnumerator();
-
-			int nearCount = 0;
-			while (posEnumerator.MoveNext() & rotEnumerator.MoveNext())
 			{
-				float distance = math.distancesq(posEnumerator.Current.Value, position.Value);
-				if (distance > 0 && distance < radius)
+				float3 alignment = new float3(0, 0, 0);
+				float3 coheshion = new float3(0, 0, 0);
+				float3 separation = new float3(0, 0, 0);
+				float3 force = float3.zero;
+
+				var posEnumerator = positions.GetEnumerator();
+				var rotEnumerator = rotations.GetEnumerator();
+
+				int nearCount = 0;
+				while (posEnumerator.MoveNext() & rotEnumerator.MoveNext())
 				{
-					++nearCount;
-					alignment += math.forward(rotEnumerator.Current.Value);
-					coheshion += posEnumerator.Current.Value;
-					separation += (position.Value - posEnumerator.Current.Value) / distance;
+					float distance = math.distancesq(posEnumerator.Current.Value, position.Value);
+					if (distance > 0 && distance < radius)
+					{
+						++nearCount;
+						alignment += math.forward(rotEnumerator.Current.Value);
+						coheshion += posEnumerator.Current.Value;
+						separation += (position.Value - posEnumerator.Current.Value);
+					}
 				}
-			}
-			posEnumerator.Dispose();
-			rotEnumerator.Dispose();
+				posEnumerator.Dispose();
+				rotEnumerator.Dispose();
 
-			if (nearCount > 0)
-			{
-				alignment /= nearCount;
-				coheshion /= nearCount;
-				separation /= nearCount;
-
-				coheshion -= position.Value;
-
-				alignment *= alignmentValue;
-				coheshion *= cohesionValue;
-				separation *= separationValue;
-
-				//rotation.Value = math.slerp(
-				//	rotation.Value,
-				//	quaternion.LookRotation(math.normalize(avgPosition - position.Value), objectTag.Diretion),
-				//	deltaTime * cohesionValue);
-
-				//rotation.Value.value = math.lerp(
-				//	rotation.Value.value,
-				//	avgRotation,
-				//	deltaTime * alignmentValue);
-
-				//position.Value += seperation * separationValue * moveSpeed * deltaTime * (1 - avgDistance);
-			}
-			else
-			{
 				rotation.Value = math.slerp(
 						rotation.Value,
-						quaternion.LookRotation(math.normalize(-position.Value), objectTag.Diretion),
-						deltaTime * rotateSpeed);
-			}
-			var velocity = math.normalize(math.forward(rotation.Value) + (alignment + coheshion + separation));
-			rotation.Value = quaternion.LookRotation(velocity, math.mul(rotation.Value, math.up()));
-			position.Value = position.Value + velocity * moveSpeed * deltaTime;
-		}).ScheduleParallel();
+						quaternion.LookRotation(math.normalize(-position.Value), math.forward(rotation.Value)/*objectTag.Diretion*/),
+						rotateSpeed * deltaTime);
+
+				if (nearCount > 0)
+				{
+					alignment = math.normalize(alignment / nearCount) * alignmentValue;
+					coheshion = math.normalize((coheshion - position.Value) / nearCount) * cohesionValue;
+					separation = math.normalize(separation / nearCount) * separationValue;
+
+					//rotation.Value = math.slerp(
+					//	rotation.Value,
+					//	quaternion.LookRotation(math.normalize(avgPosition - position.Value), objectTag.Diretion),
+					//	deltaTime * cohesionValue);
+
+					//rotation.Value.value = math.lerp(
+					//	rotation.Value.value,
+					//	avgRotation,
+					//	deltaTime * alignmentValue);
+
+					//position.Value += seperation * separationValue * moveSpeed * deltaTime * (1 - avgDistance);
+
+					rotation.Value = Quaternion.RotateTowards(
+						rotation.Value,
+						quaternion.LookRotation(
+							math.forward(rotation.Value) + alignment + coheshion + separation,
+							math.mul(rotation.Value, math.up())),
+						limitRotate * deltaTime);
+				}
+				position.Value = position.Value + math.forward(rotation.Value) * moveSpeed * deltaTime;
+			}).ScheduleParallel();
 	}
 }

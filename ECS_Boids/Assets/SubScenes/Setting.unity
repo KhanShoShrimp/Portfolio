@@ -213,7 +213,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Coheshion: 1
   Alignment: 1
-  Separation: 5
-  Radius: 5
-  MoveSpeed: 5
+  Separation: 1
+  Range: 25
+  LimitRotate: 90
   RotateSpeed: 1
+  MoveSpeed: 5
