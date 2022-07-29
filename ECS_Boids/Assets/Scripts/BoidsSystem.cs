@@ -38,15 +38,14 @@ public partial class BoidsSystem : SystemBase
 	{
 		RequireSingletonForUpdate<BoidsSettingComponent>();
 		BoidsSettingComponent setting = GetSingleton<BoidsSettingComponent>();
-
 		float alignmentValue = setting.Alignment;
 		float cohesionValue = setting.Coheshion;
 		float separationValue = setting.Separation;
-
 		float radius = setting.Range;
 		float limitRotate = setting.LimitRotate;
 		float moveSpeed = setting.MoveSpeed;
 		float rotateSpeed = setting.RotateSpeed;
+		float deltaTime = Time.DeltaTime;
 
 		int count = m_ObjectQuery.CalculateEntityCount();
 		if (!m_IsInit)
@@ -62,11 +61,11 @@ public partial class BoidsSystem : SystemBase
 
 		var positions = m_Positions;
 		var rotations = m_Rotations;
-		float deltaTime = Time.DeltaTime;
+
 		Entities
 			.WithBurst()
-			.WithReadOnly(positions)
-			.WithReadOnly(rotations)
+			.WithNativeDisableParallelForRestriction(positions)
+			.WithNativeDisableParallelForRestriction(rotations)
 			.ForEach((ref Translation position, ref Rotation rotation, in ObjectTag objectTag) =>
 			{
 				float3 alignment = new float3(0, 0, 0);
@@ -74,27 +73,43 @@ public partial class BoidsSystem : SystemBase
 				float3 separation = new float3(0, 0, 0);
 				float3 force = float3.zero;
 
-				var posEnumerator = positions.GetEnumerator();
-				var rotEnumerator = rotations.GetEnumerator();
-
 				int nearCount = 0;
-				while (posEnumerator.MoveNext() & rotEnumerator.MoveNext())
+
+				for (int i = 0; i < count; i++)
 				{
-					float distance = math.distancesq(posEnumerator.Current.Value, position.Value);
+					float distance = math.distancesq(positions[i].Value, position.Value);
 					if (distance > 0 && distance < radius)
 					{
 						++nearCount;
-						alignment += math.forward(rotEnumerator.Current.Value);
-						coheshion += posEnumerator.Current.Value;
-						separation += (position.Value - posEnumerator.Current.Value);
+						alignment += math.forward(rotations[i].Value);
+						coheshion += positions[i].Value;
+						separation += (position.Value - positions[i].Value);
 					}
 				}
-				posEnumerator.Dispose();
-				rotEnumerator.Dispose();
+
+				//var posEnumerator = positions.GetEnumerator();
+				//var rotEnumerator = rotations.GetEnumerator();
+				//
+				//while (posEnumerator.MoveNext() & rotEnumerator.MoveNext())
+				//{
+				//	float distance = math.distancesq(posEnumerator.Current.Value, position.Value);
+				//	if (distance > 0 && distance < radius)
+				//	{
+				//		++nearCount;
+				//		alignment += math.forward(rotEnumerator.Current.Value);
+				//		coheshion += posEnumerator.Current.Value;
+				//		separation += (position.Value - posEnumerator.Current.Value);
+				//	}
+				//}
+				//
+				//posEnumerator.Dispose();
+				//rotEnumerator.Dispose();
+
+				var rot = rotation.Value;
 
 				rotation.Value = math.slerp(
 						rotation.Value,
-						quaternion.LookRotation(math.normalize(-position.Value), math.forward(rotation.Value)/*objectTag.Diretion*/),
+						quaternion.LookRotation(math.normalize(-position.Value), math.forward(rot)/*objectTag.Diretion*/),
 						rotateSpeed * deltaTime);
 
 				if (nearCount > 0)
@@ -118,10 +133,11 @@ public partial class BoidsSystem : SystemBase
 					rotation.Value = Quaternion.RotateTowards(
 						rotation.Value,
 						quaternion.LookRotation(
-							math.forward(rotation.Value) + alignment + coheshion + separation,
-							math.mul(rotation.Value, math.up())),
+							math.forward(rot) + alignment + coheshion + separation,
+							math.mul(rot, math.up())),
 						limitRotate * deltaTime);
 				}
+
 				position.Value = position.Value + math.forward(rotation.Value) * moveSpeed * deltaTime;
 			}).ScheduleParallel();
 	}
