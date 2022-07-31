@@ -3,3 +3,11 @@ UDP_WebCam/UserSettings/
 Reflection_GameObj/UserSettings/
 Job_Island/Temp/
 Job_Island/UserSettings/
+ECS_Boids/Library/
+ECS_Boids/Temp/
+ECS_Boids/Logs/
+ECS_Boids/Assets/SceneDependencyCache/
+ECS_Boids/obj/
+*.sln
+*.csproj
+*.suo
