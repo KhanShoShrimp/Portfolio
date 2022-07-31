@@ -33,7 +33,7 @@ public class PerlinIsland : MonoBehaviour
 		m_Texture.SetPixelData(mapData.Colors, 0);
 		m_Texture.Apply();
 
-		m_Mesh.MakePerlinMesh(WIDTH, HEIGHT, mapData.Values);
+		m_Mesh.MakeMesh(WIDTH, HEIGHT, mapData.Values);
 	}
 
 }

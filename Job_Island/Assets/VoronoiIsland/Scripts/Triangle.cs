@@ -16,7 +16,7 @@ public struct Triangle
 	{
 		get
 		{
-			return (Point1.x * Point2.y
+			return -(Point1.x * Point2.y
 				+ Point2.x * Point3.y
 				+ Point3.x * Point1.y
 				- Point2.x * Point1.y
