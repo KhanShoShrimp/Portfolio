@@ -10,17 +10,17 @@ public class LowPolyIsland : MonoBehaviour
 	const int WIDTH = 100;
 	const int HEIGHT = 100;
 	const int COUNT = 100;
-
-	Texture2D m_Texture;
+	//Texture2D m_Texture;
 	Mesh m_Mesh;
 
 	private void Awake()
 	{
-		m_Texture = new Texture2D(0, 0);
+		//m_Texture = new Texture2D(1, 1);
+		//m_Texture.SetPixel(0, 0, Color.white);
 		m_Mesh = new Mesh();
 
 		GetComponent<MeshFilter>().mesh = m_Mesh;
-		GetComponent<MeshRenderer>().materials[0].mainTexture = m_Texture;
+		//GetComponent<MeshRenderer>().materials[0].mainTexture = m_Texture;
 
 		CreateMap();
 	}
@@ -32,8 +32,17 @@ public class LowPolyIsland : MonoBehaviour
 		//m_Texture.Resize(WIDTH, HEIGHT);
 		//m_Texture.SetPixelData(mapData.Colors, 0);
 		//m_Texture.Apply();
+		m_Mesh.MakeMesh(WIDTH, HEIGHT, data.Vertices, data.Heights, data.Triangles);
 
-		m_Mesh.MakePerlinMesh(WIDTH, HEIGHT, mapData.
+		NativeArray<Color32> colors = new NativeArray<Color32>(data.Vertices.Length, Allocator.Persistent);
+
+		new GetColor()
+		{
+			Heights = data.Heights,
+			Colors = colors
+		}.Schedule(data.Vertices.Length, 8).Complete();
+
+		m_Mesh.SetColors(colors);
 	}
 
 	//private void OnDestroy()

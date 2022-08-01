@@ -17,7 +17,7 @@ public static class MeshExtension
 		{
 			Width = width,
 			Vertices = vertices2
-		}.Schedule(width * height, 8).Complete();
+		}.Schedule(length, 8).Complete();
 
 		using NativeArray<float2> uvs = new NativeArray<float2>(length, Allocator.TempJob);
 		new GetUvs()
@@ -25,7 +25,7 @@ public static class MeshExtension
 			Resolutions = math.float2(width, height),
 			Vertices = vertices2,
 			Uvs = uvs
-		}.Schedule(width * height, 8).Complete();
+		}.Schedule(length, 8).Complete();
 
 		using NativeArray<float3> vertices3 = new NativeArray<float3>(length, Allocator.TempJob);
 		new AddHeights()
@@ -33,7 +33,7 @@ public static class MeshExtension
 			Heights = heights,
 			InputVertices = vertices2,
 			ResultVertices = vertices3
-		}.Schedule(width * height, 8).Complete();
+		}.Schedule(length, 8).Complete();
 
 		using NativeArray<int> triangles = new NativeArray<int>((width - 1) * (height - 1) * 6, Allocator.TempJob);
 		new GetTriangle()
@@ -61,7 +61,8 @@ public static class MeshExtension
 			Heights = heights,
 			InputVertices = vertices2,
 			ResultVertices = vertices3
-		}.Schedule(width * height, 8).Complete();
+		}.Schedule(length, 8).Complete();
+
 
 		using NativeArray<float2> uvs = new NativeArray<float2>(length, Allocator.TempJob);
 		new GetUvs()
@@ -69,12 +70,20 @@ public static class MeshExtension
 			Resolutions = math.float2(width, height),
 			Vertices = vertices2,
 			Uvs = uvs
-		}.Schedule(width * height, 8).Complete();
+		}.Schedule(length, 8).Complete();
+
+		using NativeArray<int> triangleIndex = new NativeArray<int>(triangles.Length * 3, Allocator.TempJob);
+		new GetTriangleIndex()
+		{
+			Input = triangles,
+			Vertices = vertices2,
+			Result = triangleIndex
+		}.Schedule(triangles.Length, 8).Complete();
 
 		mesh.Clear();
 		mesh.SetVertices(vertices3);
 		mesh.SetUVs(0, uvs);
-		mesh.SetTriangles(triangles.ToArray(), 0);
+		mesh.SetTriangles(triangleIndex.ToArray(), 0);
 		mesh.RecalculateNormals();
 	}
 }
@@ -163,11 +172,35 @@ public struct GetTriangle : IJobParallelFor
 public struct GetTriangleIndex : IJobParallelFor
 {
 	[ReadOnly] public NativeArray<Triangle> Input;
-	[NativeDisableParallelForRestriction] 
+	[ReadOnly] public NativeArray<float2> Vertices;
+	[NativeDisableParallelForRestriction]
 	[WriteOnly] public NativeArray<int> Result;
 
 	public void Execute(int index)
 	{
-		Result[index * 3 + 1] = Input[index];
+		Result[index * 3] = Vertices.IndexOf(Input[index].Point1);
+		Result[index * 3 + 1] = Vertices.IndexOf(Input[index].Point2);
+		Result[index * 3 + 2] = Vertices.IndexOf(Input[index].Point3);
+	}
+}
+
+[BurstCompile]
+public struct GetColor : IJobParallelFor
+{
+	[ReadOnly] public NativeArray<float> Heights;
+	[WriteOnly] public NativeArray<Color32> Colors;
+
+	public void Execute(int index)
+	{
+		var value = Heights[index] * 3;
+
+		if (value < 20)
+		{
+			Colors[index] = new Color32(236, 236, 195, 255);
+		}
+		else
+		{
+			Colors[index] = new Color32(122, 212, 51, 255);
+		}
 	}
 }
