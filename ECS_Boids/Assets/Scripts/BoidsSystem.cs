@@ -47,6 +47,7 @@ public partial class BoidsSystem : SystemBase
 		float rotateSpeed = setting.RotateSpeed;
 		float deltaTime = Time.DeltaTime;
 
+
 		int count = m_ObjectQuery.CalculateEntityCount();
 		if (!m_IsInit)
 		{
@@ -83,7 +84,7 @@ public partial class BoidsSystem : SystemBase
 						++nearCount;
 						alignment += math.forward(rotations[i].Value);
 						coheshion += positions[i].Value;
-						separation += (position.Value - positions[i].Value);
+						separation += (position.Value - positions[i].Value) / distance;
 					}
 				}
 
@@ -130,15 +131,23 @@ public partial class BoidsSystem : SystemBase
 
 					//position.Value += seperation * separationValue * moveSpeed * deltaTime * (1 - avgDistance);
 
-					rotation.Value = Quaternion.RotateTowards(
-						rotation.Value,
-						quaternion.LookRotation(
-							math.forward(rot) + alignment + coheshion + separation,
-							math.mul(rot, math.up())),
-						limitRotate * deltaTime);
+					float3 value = alignment + separation;
+					if (math.lengthsq(value) != 0)
+					{
+						rotation.Value = Quaternion.RotateTowards(
+							rotation.Value,
+							quaternion.LookRotation(position.Value + alignment + separation, math.mul(rot, math.up())),
+							limitRotate * deltaTime);
+					}
 				}
 
-				position.Value = position.Value + math.forward(rotation.Value) * moveSpeed * deltaTime;
+				var forward = math.forward(rotation.Value);
+
+				if (math.lengthsq(coheshion) != 0)
+				{
+					position.Value += math.normalize(coheshion) * math.min(math.lengthsq(coheshion), moveSpeed * 0.5f) * deltaTime;
+				}
+				position.Value += math.forward(rotation.Value) * moveSpeed * deltaTime;
 			}).ScheduleParallel();
 	}
 }

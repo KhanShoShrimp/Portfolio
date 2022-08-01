@@ -153,7 +153,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Prefab: {fileID: 331608798119549228, guid: 1dc89a54f3f1f0f4aab418392ff91b8c, type: 3}
-  Count: 1000
+  Count: 5000
 --- !u!4 &1664681443
 Transform:
   m_ObjectHideFlags: 0
@@ -211,7 +211,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aad585a7090f4944cb119d4c209392fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Coheshion: 1
+  Coheshion: 3
   Alignment: 1
   Separation: 1
   Range: 25
