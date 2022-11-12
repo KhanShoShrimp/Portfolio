@@ -19,7 +19,6 @@ public enum MessageSort : byte
     Image = 4
 }
 
-//Bad : Packet구조체를 다시 Byte[]에 복사해야하므로 메모리 부족.
 [Serializable]
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct Packet
