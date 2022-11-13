@@ -9,7 +9,7 @@ Jobs - 섬 만들기
 
 Job System은 안전한 멀티스레드를 제공하여 데이터를 빠르게 처리할 수 있는 시스템입니다.
 
-노이즈를 생성(PerlinNoise, Gradient)하거나 섬 메쉬를 생성(Vertice, UV, Triangle)할 때, 데이터를 JobSystem으로 빠르게 처리하고 있습니다.
+노이즈를 생성(PerlinNoise, Gradient)하거나 섬 메쉬를 생성(Vertice, UV, Triangle)할 때, 데이터를 JobSystem으로 처리하고 있습니다.
 
 개발 내역
 - Delaunay triangulation
