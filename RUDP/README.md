@@ -19,18 +19,18 @@ Datagram : Buffer에 실제 데이터를 쓰기 위한 용도.
 <br/><br/><br/>
 
 [현재 데이터 구조]<br/>
-- Packet
-  - Header : 8byte
+- Packet : 1024bytes
+  - Header : 8bytes
     - Reliable : 1bit
     - Sender : 1bit
     - Success : 1bit
     - Index : 1byte
-    - CRC : 2byte
-    - Length : 4byte
+    - CRC : 2bytes
+    - Length : 4bytes
   - Buffer
-    - Datagram : 1015byte
+    - Datagram : 1015bytes
         - DataType : 1byte
-        - Bytes : 1014byte
+        - Bytes : 1014bytes
 <br/><br/><br/>
 
 [완료된 작업]
