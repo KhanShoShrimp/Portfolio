@@ -19,7 +19,7 @@ Datagram : Buffer에 실제 데이터를 쓰기 위한 용도.
 <br/><br/><br/>
 
 [현재 데이터 구조]<br/>
-Packet
+Packet<br/>
  - Header : 8byte
     - Reliable : 1bit
     - Sender : 1bit
