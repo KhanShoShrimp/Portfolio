@@ -18,7 +18,7 @@ Packet : Buffer에 Header를 쓰거나 읽는 용도.
 Datagram : Buffer에 실제 데이터를 쓰기 위한 용도.  
 <br/><br/><br/>
 
-[현재 데이터 구조]
+[현재 데이터 구조]  
 Packet
  - Header : 8byte
     - Reliable : 1bit
@@ -41,7 +41,7 @@ Packet
  - 데이터 도착 확인
 <br/><br/><br/>
   
-[남은 작업]
+[남은 작업]  
  - TimeOut
  - Texture 통신
  - 예제 씬 구성
