@@ -10,17 +10,11 @@ UDP를 통해 TCP의 신뢰성을 갖춘다면 더욱 빠르게 통신할 수 �
  - 데이터 무결성 확인
 
 [주요 클래스]
-BaseRUDP : 일반 byte배열을 보내는 소켓 통신.
-
-RUDP : BaseRUDP로 DataGram을 Serialize하여 통신함.
-
-Buffer : byte배열을 쓰거나 읽는 용도.
-
-Packet : Buffer에 Header를 쓰거나 읽는 용도.
-
-Datagram : Buffer에 실제 데이터를 쓰기 위한 용도. 
-
-
+BaseRUDP : 일반 byte배열을 보내는 소켓 통신.  
+RUDP : BaseRUDP로 DataGram을 Serialize하여 통신함.  
+Buffer : byte배열을 쓰거나 읽는 용도.  
+Packet : Buffer에 Header를 쓰거나 읽는 용도.  
+Datagram : Buffer에 실제 데이터를 쓰기 위한 용도.  
 
 [현재 데이터 구조]
 Packet
